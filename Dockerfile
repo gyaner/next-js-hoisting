@@ -7,6 +7,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Run
+
 FROM node:18-alpine
 WORKDIR /app
 COPY --from=builder /app/package*.json ./
