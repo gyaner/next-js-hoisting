@@ -71,7 +71,7 @@ export default function Home() {
             src="/window.svg"
             alt="Window icon"
             width={16}
-            height={16}
+            height={18}
           />
           Examples
         </a>
