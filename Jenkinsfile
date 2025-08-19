@@ -4,7 +4,7 @@ pipeline {
   environment {
     REPO_URL     = 'https://github.com/gyaner/next-js-hoisting'
     EC2_USER     = 'ubuntu'
-    EC2_HOST     = '13.127.235.27'
+    EC2_HOST     = '43.204.25.229'
     APP_DIR      = '/opt/nextjs-app'
     DOCKER_IMAGE = 'nextjs-app'
   }
@@ -16,19 +16,20 @@ pipeline {
       }
     }
 
-    stage('Deploy to EC2 (build & run in Docker)') {
+    stage('Deploy only for main') {
+      when {
+        branch 'main'   // ✅ Run only if branch == main
+      }
       steps {
-        sshagent(['ec2-ssh-key']) {   // 🔑 Jenkins credential ID
+        sshagent(['ec2-ssh-key']) {
           sh """
             ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
               set -e
 
-              # Ensure dependencies
               command -v git >/dev/null || sudo apt-get update -y
               command -v git >/dev/null || sudo apt-get install -y git -y
               command -v docker >/dev/null || sudo apt-get install -y docker.io -y
 
-              # Clone or update repo branch on EC2
               if [ -d "$APP_DIR/.git" ]; then
                 cd "$APP_DIR"
                 git fetch origin "$BRANCH_NAME"
@@ -41,7 +42,6 @@ pipeline {
                 cd "$APP_DIR"
               fi
 
-              # Build & run container
               SHORT_COMMIT=\$(echo "$GIT_COMMIT" | cut -c1-7)
               IMAGE_TAG="$DOCKER_IMAGE:\$SHORT_COMMIT"
               CONTAINER_NAME="nextjs-\$BRANCH_NAME"
